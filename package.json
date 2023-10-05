@@ -4,7 +4,7 @@
   "description": "A project to generate Postman collections based on user selections",
   "main": "server.js",
   "scripts": {
-    "start": "dotenv -e .env.local node server.js"
+    "start": "node server.js"
   },
   "keywords": [
     "postman",
