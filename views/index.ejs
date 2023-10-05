@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postman Collection Checkboxes</title>
+</head>
+<body>
+    <h1>Select Requests</h1>
+    
+    <!-- Workspace dropdown -->
+    <div>
+        <label for="workspace">Workspace:</label>
+        <select id="workspace" name="workspace" onchange="updateCollectionsDropdown();">
+            <% workspaces.forEach(workspace => { %>
+                <option value="<%= workspace.id %>" <%= workspace.id === selectedWorkspaceId ? 'selected' : '' %>>
+                    <%= workspace.name %>
+                </option>
+            <% }) %>
+        </select>
+    </div>
+
+    <!-- Collections dropdown -->
+    <div>
+        <label for="collection">Collection:</label>
+        <select id="collection" name="collection" onchange="updateCheckboxes();">
+            <% collections.forEach(collection => { %>
+                <option value="<%= collection.id %>" <%= collection.id === selectedCollectionId ? 'selected' : '' %>>
+                    <%= collection.name %>
+                </option>
+            <% }) %>
+        </select>
+    </div>
+
+    <!-- Place to display checkboxes and submit button -->
+<div id="checkboxes">
+    <% if (collectionData) { %>
+        <form method="post" action="/create-collection"> <!-- Assuming there's a POST route to handle this in server.js -->
+            <% requests.forEach(request => { %>
+                <div>
+                    <input type="checkbox" id="<%= request %>" name="selectedRequests" value="<%= request %>">
+                    <label for="<%= request %>"><%= request %></label>
+                </div>
+            <% }) %>
+            <button type="submit">Create New Collection</button>
+        </form>
+    <% } else { %>
+        <p>Collection not selected.</p>
+    <% } %>
+</div>
+
+    <script>
+        async function updateCollectionsDropdown() {
+            const workspaceId = document.getElementById('workspace').value;
+            const collectionsDropdown = document.getElementById('collection');
+            
+            try {
+                const response = await fetch(`/workspaces/${workspaceId}`);
+                const workspaceDetails = await response.json();
+
+                const collections = workspaceDetails.collections || [];
+
+                // Clear the dropdown
+                collectionsDropdown.innerHTML = '';
+
+                // Populate the dropdown with new collections
+                collections.forEach(collection => {
+                    const option = document.createElement('option');
+                    option.value = collection.id;
+                    option.textContent = collection.name;
+                    collectionsDropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to update collections dropdown:', error);
+            }
+        }
+
+        async function updateCheckboxes() {
+            const collectionId = document.getElementById('collection').value;
+            const checkboxesDiv = document.getElementById('checkboxes');
+            
+            try {
+                const response = await fetch(`/collections/${collectionId}`);
+                const collectionData = await response.json();
+
+                const requests = collectionData.item.map(item => item.name);
+
+                // Clear the existing checkboxes
+                checkboxesDiv.innerHTML = '';
+
+                // Populate the div with new checkboxes
+                requests.forEach(request => {
+                    const checkboxDiv = document.createElement('div');
+
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.id = request;
+                    input.name = 'selectedRequests';
+                    input.value = request;
+
+                    const label = document.createElement('label');
+                    label.htmlFor = request;
+                    label.textContent = request;
+
+                    checkboxDiv.appendChild(input);
+                    checkboxDiv.appendChild(label);
+                    checkboxesDiv.appendChild(checkboxDiv);
+                });
+            } catch (error) {
+                console.error('Failed to update checkboxes:', error);
+            }
+        }
+    </script>
+</body>
+</html>
