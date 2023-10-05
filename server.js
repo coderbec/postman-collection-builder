@@ -47,15 +47,33 @@ async function fetchWorkspaceDetails(workspaceId) {
     return response.data.workspace;
 }
 
+//fetch only oubic workspace
+async function fetchPublicWorkspaces() {
+    const response = await axios.get('https://api.getpostman.com/workspaces', {
+        headers: {
+            'X-Api-Key': apiKey
+        }
+    });
+    return response.data.workspaces.filter(workspace => workspace.type === 'public');
+}
+
 // Main route to render the page
 app.get('/', async (req, res) => {
-    let workspaces, selectedWorkspaceId, workspaceDetails, collections, selectedCollectionId, collectionData, requests = [];
+    let workspaces, publicWorkspaces, selectedWorkspaceId, workspaceDetails, collections, selectedCollectionId, collectionData, requests = [];
 
     // Fetch all workspaces
     try {
         workspaces = await fetchWorkspaces();
         console.log('Workspaces:', workspaces);
         selectedWorkspaceId = req.query.workspace || (workspaces[0] && workspaces[0].id);
+    } catch (error) {
+        console.error('Error fetching workspaces:', error);
+    }
+
+    try {
+        publicWorkspaces  = workspaces.filter(workspace => workspace.type === 'public');
+        console.log('Public Workspaces:', publicWorkspaces);
+
     } catch (error) {
         console.error('Error fetching workspaces:', error);
     }
@@ -82,7 +100,7 @@ app.get('/', async (req, res) => {
         }
     }
 
-    res.render('index', { requests, workspaces, collections, selectedWorkspaceId, selectedCollectionId, collectionData });
+    res.render('index', { requests, workspaces, publicWorkspaces, collections, selectedWorkspaceId, selectedCollectionId, collectionData });
 });
 
 app.get('/workspaces/:workspaceId', async (req, res) => {
@@ -104,9 +122,10 @@ app.get('/collections/:collectionId', async (req, res) => {
 });
 
 app.post('/create-collection', async (req, res) => {
-    const selectedRequests = req.body.selectedRequests; // Extract selected requests from form data
+    const selectedRequests = req.body.selectedRequests;
+    const publicWorkspaceId = req.body.publicWorkspaceId;
 
-    // Construct a new collection object based on the selected requests
+     // Construct a new collection object based on the selected requests
     // This is a simplified example; you might need to adjust based on the actual structure of your requests
     const newCollection = {
         "info": {
@@ -123,9 +142,10 @@ app.post('/create-collection', async (req, res) => {
         })
     };
 
+
     try {
         // Use the Postman API to create the new collection
-        await axios.post('https://api.getpostman.com/collections', {
+        const response = await axios.post(`https://api.getpostman.com/collections?workspace=${publicWorkspaceId}`, {
             collection: newCollection
         }, {
             headers: {
@@ -133,12 +153,15 @@ app.post('/create-collection', async (req, res) => {
             }
         });
 
-        res.redirect('/'); // Redirect back to the main page
+        const newCollectionId = response.data.collection.id;
+
+        res.redirect('/');
     } catch (error) {
         console.error('Failed to create new collection:', error);
         res.status(500).send('Failed to create new collection');
     }
 });
+
 
 app.listen(PORT, () => {
     console.log(`Server started on http://localhost:${PORT}`);

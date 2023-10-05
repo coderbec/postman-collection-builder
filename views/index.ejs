@@ -42,6 +42,18 @@
                     <label for="<%= request %>"><%= request %></label>
                 </div>
             <% }) %>
+            <!-- Public Workspaces dropdown -->
+<div>
+    <label for="publicWorkspace">Public Workspace To Save New Collection To:</label>
+    <select id="publicWorkspace" name="publicWorkspace">
+        <% publicWorkspaces.forEach(workspace => { %>
+            <option value="<%= workspace.id %>">
+                <%= workspace.name %>
+            </option>
+        <% }) %>
+    </select>
+</div>
+<input type="hidden" name="publicWorkspaceId" value="<%= publicWorkspaces[0] && publicWorkspaces[0].id %>">
             <button type="submit">Create New Collection</button>
         </form>
     <% } else { %>

@@ -2,7 +2,7 @@
 
 The Postman Collection Generator is a Node.js application that interacts with the Postman API. Users can select specific requests from a Postman collection and generate a new collection based on their selections. The application provides a user-friendly interface with dropdowns for workspace and collection selection, and checkboxes for individual requests.
 
-The new collection is saved to the [Avetta's APIs Public Workspace](https://www.postman.com/avettamigration/workspace/avetta-s-apis) for sharing with the customer.
+The new collection is saved to predefined public workspace for sharing with the customer.
 
 ## Getting Started
 
