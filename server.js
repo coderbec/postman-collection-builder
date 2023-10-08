@@ -196,12 +196,17 @@ app.get("/collections/:collectionId", async (req, res) => {
 });
 
 app.post("/create-collection", async (req, res) => {
-  const selectedRequests = Array.isArray(req.body.selectedRequests)
-    ? req.body.selectedRequests
-    : [req.body.selectedRequests];
+  const selectedIndices = Array.isArray(req.body.selectedRequests)
+    ? req.body.selectedRequests.map(Number)
+    : [Number(req.body.selectedRequests)];
+
+  const selectedObjects = selectedIndices.map((index) => {
+    return JSON.parse(req.body["requestData_" + index]);
+  });
+
   const publicWorkspaceId = req.body.publicWorkspaceId;
 
-  console.log("Selected requests:", JSON.stringify(selectedRequests));
+  console.log("Selected requests:", JSON.stringify(selectedObjects));
   // Construct a new collection object based on the selected requests
   // This is a simplified example; you might need to adjust based on the actual structure of your requests
   const newCollection = {
@@ -209,7 +214,7 @@ app.post("/create-collection", async (req, res) => {
       name: "New Collection",
       description: "Generated from selected requests",
     },
-    ...selectedRequests,
+    ...selectedObjects,
   };
 
   try {
