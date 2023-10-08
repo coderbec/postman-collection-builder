@@ -23,22 +23,61 @@ async function fetchWorkspaces() {
       "X-Api-Key": apiKey,
     },
   });
-  console.log(response.data.workspaces);
-  return response.data.workspaces;
+  //console.log(response.data.workspaces);
+  // Filter out the excluded workspace ID
+  return response.data.workspaces.filter(
+    (workspace) => workspace.id !== "62081371-47af-448e-a7d6-9e523dd0f6dc"
+  );
+  //return response.data.workspaces;
 }
 
 // Function to fetch specific collection data
 async function fetchCollectionData(collectionId) {
-  const response = await axios.get(
-    `https://api.getpostman.com/collections/${collectionId}`,
-    {
-      headers: {
-        "X-Api-Key": apiKey,
-      },
-    }
-  );
-  return response.data.collection;
+  try {
+    const response = await axios.get(
+      `https://api.getpostman.com/collections/${collectionId}`,
+      {
+        headers: {
+          "X-Api-Key": apiKey,
+        },
+      }
+    );
+    // const collectionData = await response.json();
+
+    //const requests = collectionData.item.map(item => item.name);
+    //console.log(response);
+    // Clear the existing checkboxes
+    return response;
+  } catch (error) {
+    console.error("Failed to get initial collection data:", error);
+  }
 }
+
+// Route to fetch collections for a given workspace
+app.get("/collections-for-workspace/:workspaceId", async (req, res) => {
+  try {
+    const workspaceDetails = await fetchWorkspaceDetails(
+      req.params.workspaceId
+    );
+    res.json(workspaceDetails.collections || []);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch collections for workspace" });
+  }
+});
+
+// Route to fetch checkboxes for a given collection
+app.get("/checkboxes-for-collection/:collectionId", async (req, res) => {
+  try {
+    const collectionData = await fetchCollectionData(req.params.collectionId);
+    res.json(collectionData.data.collection.item || []);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch checkboxes for collection" });
+  }
+});
 
 //Function to gethc a specific workspace
 async function fetchWorkspaceDetails(workspaceId) {
@@ -108,14 +147,15 @@ app.get("/", async (req, res) => {
   }
 
   selectedCollectionId =
-    req.query.collection || (collections[0] && collections[0].id);
+    req.query.collection || (collections[0] && collections[0].uid);
 
   // Fetch specific collection data
   if (selectedCollectionId) {
     try {
       collectionData = await fetchCollectionData(selectedCollectionId);
-      console.log("Collection Data:", collectionData);
-      requests = collectionData.item;
+      console.log("Collection Data:", collectionData.data);
+      requests = collectionData.data.collection.item;
+      console.log("Requests:", requests);
     } catch (error) {
       console.error(
         `Error fetching collection data for collection ${selectedCollectionId}:`,

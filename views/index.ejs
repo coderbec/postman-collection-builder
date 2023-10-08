@@ -27,7 +27,7 @@
         <label for="collection">Collection:</label>
         <select id="collection" name="collection" onchange="updateCheckboxes();">
             <% collections.forEach(collection => { %>
-                <option value="<%= collection.id %>" <%= collection.id === selectedCollectionId ? 'selected' : '' %>>
+                <option value="<%= collection.uid %>" <%= collection.id === selectedCollectionId ? 'selected' : '' %>>
                     <%= collection.name %>
                 </option>
             <% }) %>
@@ -75,14 +75,12 @@
             const collectionsDropdown = document.getElementById('collection');
             
             try {
-                const response = await fetch(`/workspaces/${workspaceId}`);
-                const workspaceDetails = await response.json();
-
-                const collections = workspaceDetails.collections || [];
-
+                const response = await fetch(`/collections-for-workspace/${workspaceId}`);
+                const collections = await response.json();
+    
                 // Clear the dropdown
                 collectionsDropdown.innerHTML = '';
-
+    
                 // Populate the dropdown with new collections
                 collections.forEach(collection => {
                     const option = document.createElement('option');
@@ -94,37 +92,35 @@
                 console.error('Failed to update collections dropdown:', error);
             }
         }
-
+    
         async function updateCheckboxes() {
             const collectionId = document.getElementById('collection').value;
             const checkboxesContainer = document.getElementById('checkboxesContainer');
             
             try {
-                const response = await fetch(`/collections/${collectionId}`);
-                const collectionData = await response.json();
-
-                //const requests = collectionData.item.map(item => item.name);
-                const requests = collectionData.item;
+                const response = await fetch(`/checkboxes-for-collection/${collectionId}`);
+                const requests = await response.json();
+    
                 jsonString = JSON.stringify(requests, null, 2)?.replaceAll('\\', '');
                 console.log(`requests at this point requests: ${JSON.stringify(jsonString, null, 2)}`);
+    
                 // Clear the existing checkboxes
                 checkboxesContainer.innerHTML = '';
-
+    
                 // Populate the div with new checkboxes
                 requests.forEach(request => {
                     const checkboxDiv = document.createElement('div');
-
+    
                     const input = document.createElement('input');
                     input.type = 'checkbox';
-                    input.id = request;
+                    input.id = request.name; // Assuming request has a 'name' property
                     input.name = 'selectedRequests';
-                    //input.textContent = request.name;
-                    input.value = request;
-
+                    input.value = request.name; 
+    
                     const label = document.createElement('label');
                     label.htmlFor = request.name;
                     label.textContent = request.name;
-
+    
                     checkboxDiv.appendChild(input);
                     checkboxDiv.appendChild(label);
                     checkboxesContainer.appendChild(checkboxDiv);
