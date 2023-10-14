@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Postman Collection Checkboxes</title>
 </head>
+
 <body>
     <h1>Select Requests</h1>
-    
+
     <!-- Workspace dropdown and Refresh button -->
-<div>
-    <label for="workspace">Workspace:</label>
-    <select id="workspace" name="workspace" onchange="updateCollectionsDropdown();">
-        <% workspaces.forEach(workspace => { %>
+    <div>
+        <label for="workspace">Workspace:</label>
+        <select id="workspace" name="workspace" onchange="updateCollectionsDropdown();">
+            <% workspaces.forEach(workspace => { %>
             <option value="<%= workspace.id %>" <%= workspace.id === selectedWorkspaceId ? 'selected' : '' %>>
                 <%= workspace.name %>
             </option>
-        <% }) %>
-    </select>
-    <button type="button" onclick="updateCollectionsDropdown();">Refresh Collections</button> <!-- New button -->
-</div>
-
+            <% }) %>
+        </select>
+        <button type="button" onclick="updateCollectionsDropdown();">Refresh Collections</button> <!-- New button -->
+    </div>
 
     <!-- Collections dropdown -->
     <div>
         <label for="collection">Collection:</label>
         <select id="collection" name="collection" onchange="updateCheckboxes();">
             <% collections.forEach(collection => { %>
-                <option value="<%= collection.uid %>" <%= collection.id === selectedCollectionId ? 'selected' : '' %>>
-                    <%= collection.name %>
-                </option>
+            <option value="<%= collection.uid %>" <%= collection.uid === selectedCollectionId ? 'selected' : '' %>>
+                <%= collection.name %>
+            </option>
             <% }) %>
         </select>
         <button type="button" onclick="updateCheckboxes();">Refresh Checkboxes</button> <!-- New button -->
@@ -39,32 +40,40 @@
         <form method="post" action="/create-collection">
 
             <div id="checkboxesContainer"> <!-- Container for checkboxes -->
-                <% if (collectionData) { %>
-                    <% requests.forEach((request, index) => { %>
-                        <div>
-                            <input type="checkbox" id="<%= request.name %>" name="selectedRequests" value="<%= index %>">
-                            <label for="<%= request.name %>"><%= request.name %></label>
-                            <input type="hidden" name="requestData_<%= index %>" value="<%= JSON.stringify(request) %>">
-                        </div>
-                    <% }) %>
+                <% function renderItems(items) { %>
+                <% items.forEach((item, index) => { %>
+                <% if(item.item) { %>
+                <h3><%= item.name %></h3>
+                <% renderItems(item.item); %>
                 <% } else { %>
-                    <p>Collection not selected.</p>
+                <div>
+                    <input type="checkbox" id="<%= item.name %>" name="selectedRequests" value="<%= index %>">
+                    <label for="<%= item.name %>"><%= item.name %></label>
+                    <input type="hidden" name="requestData_<%= index %>" value="<%= JSON.stringify(item) %>">
+                </div>
                 <% } %>
-            </div>  
+                <% }); %>
+                <% } %>
+
+                <% if (collectionData) { %>
+                <% renderItems(requests); %>
+                <% } else { %>
+                <p>Collection not selected.</p>
+                <% } %>
+            </div>
 
             <!-- Public Workspaces dropdown -->
             <div>
                 <label for="publicWorkspace">Public Workspace To Save New Collection To:</label>
                 <select id="publicWorkspace" name="publicWorkspace">
                     <% publicWorkspaces.forEach(workspace => { %>
-                        <option value="<%= workspace.id %>">
-                            <%= workspace.name %>
-                        </option>
+                    <option value="<%= workspace.id %>">
+                        <%= workspace.name %>
+                    </option>
                     <% }) %>
                 </select>
             </div>
-            <!-- Hidden input to store the full request data -->
-           
+
             <input type="hidden" name="publicWorkspaceId" value="<%= publicWorkspaces[0] && publicWorkspaces[0].id %>">
             <button type="submit">Create New Collection</button>
 
@@ -75,14 +84,14 @@
         async function updateCollectionsDropdown() {
             const workspaceId = document.getElementById('workspace').value;
             const collectionsDropdown = document.getElementById('collection');
-            
+
             try {
                 const response = await fetch(`/collections-for-workspace/${workspaceId}`);
                 const collections = await response.json();
-    
+
                 // Clear the dropdown
                 collectionsDropdown.innerHTML = '';
-    
+
                 // Populate the dropdown with new collections
                 collections.forEach(collection => {
                     const option = document.createElement('option');
@@ -94,35 +103,35 @@
                 console.error('Failed to update collections dropdown:', error);
             }
         }
-    
+
         async function updateCheckboxes() {
             const collectionId = document.getElementById('collection').value;
             const checkboxesContainer = document.getElementById('checkboxesContainer');
-            
+
             try {
                 const response = await fetch(`/checkboxes-for-collection/${collectionId}`);
                 const requests = await response.json();
-    
+
                 jsonString = JSON.stringify(requests, null, 2)?.replaceAll('\\', '');
                 console.log(`requests at this point requests: ${JSON.stringify(jsonString, null, 2)}`);
-    
+
                 // Clear the existing checkboxes
                 checkboxesContainer.innerHTML = '';
-    
+
                 // Populate the div with new checkboxes
                 requests.forEach(request => {
                     const checkboxDiv = document.createElement('div');
-    
+
                     const input = document.createElement('input');
                     input.type = 'checkbox';
                     input.id = request.name; // Assuming request has a 'name' property
                     input.name = 'selectedRequests';
-                    input.value = request; 
-    
+                    input.value = request;
+
                     const label = document.createElement('label');
                     label.htmlFor = request.name;
                     label.textContent = request.name;
-    
+
                     checkboxDiv.appendChild(input);
                     checkboxDiv.appendChild(label);
                     checkboxesContainer.appendChild(checkboxDiv);
@@ -133,4 +142,5 @@
         }
     </script>
 </body>
+
 </html>

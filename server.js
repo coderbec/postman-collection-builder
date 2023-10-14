@@ -155,7 +155,7 @@ app.get("/", async (req, res) => {
       collectionData = await fetchCollectionData(selectedCollectionId);
       console.log("Collection Data:", collectionData.data);
       requests = collectionData.data.collection.item;
-      console.log("Requests:", requests);
+      console.log("Items:", requests);
     } catch (error) {
       console.error(
         `Error fetching collection data for collection ${selectedCollectionId}:`,
@@ -196,15 +196,26 @@ app.get("/collections/:collectionId", async (req, res) => {
 });
 
 app.post("/create-collection", async (req, res) => {
+  console.log("Request Body:", JSON.stringify(req.body.selectedRequests));
+
+  //console.log("req.body.selectedRequests:", req.body.selectedRequests);
+
   const selectedIndices = Array.isArray(req.body.selectedRequests)
     ? req.body.selectedRequests.map(Number)
     : [Number(req.body.selectedRequests)];
 
+  console.log("Selected Indices:", selectedIndices);
+
   const selectedObjects = selectedIndices.map((index) => {
-    return JSON.parse(req.body["requestData_" + index]);
+    const requestData = req.body["requestData_" + index];
+    console.log(`requestData_${index}:`, requestData);
+    return requestData ? JSON.parse(requestData) : null;
   });
 
+  console.log("Selected Objects:", selectedObjects);
+
   const publicWorkspaceId = req.body.publicWorkspaceId;
+  console.log("Public Workspace ID:", publicWorkspaceId);
 
   console.log("Selected requests:", JSON.stringify(selectedObjects));
   // Construct a new collection object based on the selected requests
@@ -214,9 +225,13 @@ app.post("/create-collection", async (req, res) => {
       name: "New Collection",
       description: "Generated from selected requests",
     },
-    ...selectedObjects,
+    item: selectedObjects,
   };
 
+  console.log(
+    "Selected requests after parsing:",
+    JSON.stringify(newCollection)
+  );
   try {
     // Log the request body
     console.log("Request Body:", {
