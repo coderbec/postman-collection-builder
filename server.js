@@ -118,7 +118,7 @@ app.get("/", async (req, res) => {
   // Fetch all workspaces
   try {
     workspaces = await fetchWorkspaces();
-    console.log("Workspaces:", workspaces);
+    //console.log("Workspaces:", workspaces);
     selectedWorkspaceId =
       req.query.workspace || (workspaces[0] && workspaces[0].id);
   } catch (error) {
@@ -129,7 +129,7 @@ app.get("/", async (req, res) => {
     publicWorkspaces = workspaces.filter(
       (workspace) => workspace.visibility === "public"
     );
-    console.log("Public Workspaces:", publicWorkspaces);
+    //console.log("Public Workspaces:", publicWorkspaces);
   } catch (error) {
     console.error("Error fetching workspaces:", error);
   }
@@ -137,7 +137,7 @@ app.get("/", async (req, res) => {
   // Fetch details of the selected workspace
   try {
     workspaceDetails = await fetchWorkspaceDetails(selectedWorkspaceId);
-    console.log("Workspace Details:", workspaceDetails);
+    //console.log("Workspace Details:", workspaceDetails);
     collections = workspaceDetails.collections || [];
   } catch (error) {
     console.error(
@@ -153,9 +153,9 @@ app.get("/", async (req, res) => {
   if (selectedCollectionId) {
     try {
       collectionData = await fetchCollectionData(selectedCollectionId);
-      console.log("Collection Data:", collectionData.data);
+      //console.log("Collection Data:", collectionData.data);
       requests = collectionData.data.collection.item;
-      console.log("Items:", requests);
+      //console.log("Items:", requests);
     } catch (error) {
       console.error(
         `Error fetching collection data for collection ${selectedCollectionId}:`,
@@ -208,7 +208,7 @@ app.post("/create-collection", async (req, res) => {
 
   const selectedObjects = selectedIndices.map((index) => {
     const requestData = req.body["requestData_" + index];
-    console.log(`requestData_${index}:`, requestData);
+    //console.log(`requestData_${index}:`, requestData);
     return requestData ? JSON.parse(requestData) : null;
   });
 
@@ -217,28 +217,42 @@ app.post("/create-collection", async (req, res) => {
   const publicWorkspaceId = req.body.publicWorkspaceId;
   console.log("Public Workspace ID:", publicWorkspaceId);
 
-  console.log("Selected requests:", JSON.stringify(selectedObjects));
+  //console.log("Selected requests:", JSON.stringify(selectedObjects));
   // Construct a new collection object based on the selected requests
   // This is a simplified example; you might need to adjust based on the actual structure of your requests
   const newCollection = {
     info: {
       name: "New Collection",
       description: "Generated from selected requests",
+      schema:
+        "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     },
     item: selectedObjects,
   };
 
-  console.log(
-    "Selected requests after parsing:",
-    JSON.stringify(newCollection)
-  );
+  // console.log(
+  //   "Selected requests after parsing:",
+  //   JSON.stringify(newCollection)
+  // );
   try {
     // Log the request body
-    console.log("Request Body:", {
-      collection: newCollection,
-    });
+    // console.log("Request Body:", {
+    //   collection: newCollection,
+    // });
 
-    // Use the Postman API to create the new collection
+    //Use the Postman API to create the new collection
+    // const response = await axios.post(
+    //   `https://api.getpostman.com/collections`,
+    //   {
+    //     collection: newCollection,
+    //   },
+    //   {
+    //     headers: {
+    //       "X-Api-Key": apiKey,
+    //     },
+    //   }
+    // );
+
     const response = await axios.post(
       `https://api.getpostman.com/collections?workspace=${publicWorkspaceId}`,
       {
@@ -251,11 +265,14 @@ app.post("/create-collection", async (req, res) => {
       }
     );
 
-    const newCollectionId = response.data.collection.id;
+    // Log the request body
+    console.log("New Collection:", {
+      collection: response.data,
+    });
 
     res.redirect("/");
   } catch (error) {
-    console.error("Failed to create new collection:", error);
+    console.error("Failed to create new collection:", error.response.data);
     res.status(500).send("Failed to create new collection");
   }
 });
