@@ -58,3 +58,9 @@ Once you've set up your `.env.local` file:
 ## Usage
 
 Select a workspace and a collection using the dropdown menus. Choose the requests you want to include in your new collection using the checkboxes, and then click "Create New Collection". Your new collection will be generated and saved to your Postman account.
+
+## TO DO
+
+[] Add environment for customer
+[] Handle than one level of nested folder
+[] Display share link for generated collection

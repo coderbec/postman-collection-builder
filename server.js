@@ -215,14 +215,15 @@ app.post("/create-collection", async (req, res) => {
   console.log("Selected Objects:", selectedObjects);
 
   const publicWorkspaceId = req.body.publicWorkspaceId;
-  console.log("Public Workspace ID:", publicWorkspaceId);
+  const collectionName = req.body.collectionName;
+  //console.log("Public Workspace ID:", publicWorkspaceId);
 
   //console.log("Selected requests:", JSON.stringify(selectedObjects));
   // Construct a new collection object based on the selected requests
   // This is a simplified example; you might need to adjust based on the actual structure of your requests
   const newCollection = {
     info: {
-      name: "New Collection",
+      name: "req.body.collectionName",
       description: "Generated from selected requests",
       schema:
         "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
